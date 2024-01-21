@@ -1,6 +1,15 @@
 #include "main.h"
 using namespace std;
 
+#pragma pack(push, 1)
+struct BeaconPacket final
+{
+    struct _ieee80211_radiotap_header radiotap_;
+    struct _ieee80211_beacon_frame_header beacon_;
+    struct _ieee80211_wireless_management_header wireless_;
+};
+#pragma pack(pop)
+
 void usage()
 {
     printf("syntax : beacon-flood <interface> <ssid-list-file>\n");
@@ -15,7 +24,8 @@ Param param = {
 	.dev_ = NULL
 };
 
-bool parse(Param* param, int argc, char* argv[]) {
+bool parse(Param* param, int argc, char* argv[])
+{
 	if (argc != 3) {
 		usage();
 		return false;
@@ -24,11 +34,23 @@ bool parse(Param* param, int argc, char* argv[]) {
 	return true;
 }
 
+long getCurrentTime()
+{
+    struct timespec currentTime;
+    clock_gettime(CLOCK_REALTIME, &currentTime);
+    struct timespec epoch = {0};
+    time_t epochSeconds = mktime(gmtime(&epoch.tv_sec));
+    time_t currentSeconds = mktime(gmtime(&currentTime.tv_sec));
+    long timestampDifference = (currentSeconds - epochSeconds) * 1000000L + (currentTime.tv_nsec - epoch.tv_nsec) / 1000L;
+
+    return timestampDifference;
+}
+
 int main(int argc, char** argv)
 {
     if (!parse(&param, argc, argv))
 		return -1;
-
+    
     vector<string> ssid_list;
     ifstream openFile(argv[2]);
     if(openFile.is_open())
@@ -49,8 +71,7 @@ int main(int argc, char** argv)
 		return -1;
     }
 
-    
-    
+    struct BeaconPacket packet;
 
     return 0;
 }
