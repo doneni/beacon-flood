@@ -39,5 +39,6 @@
 
 *.pcap
 *.swp
+*.txt
 
 beacon-flood
