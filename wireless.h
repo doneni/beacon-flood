@@ -10,6 +10,6 @@ struct _ieee80211_wireless_management_header {
     uint16_t capabilities_information;
     uint8_t tag_number;
     uint8_t tag_length;
-    uint8_t ssid[0];
+    uint8_t* ssid;
 };
 #pragma pack(pop)

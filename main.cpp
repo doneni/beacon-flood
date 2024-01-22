@@ -71,6 +71,8 @@ int main(int argc, char** argv)
     int i = 0;
     while(1)
     {
+        if(i > ssid_list.size() - 1)
+            i = 0;
         struct pcap_pkthdr* header;
 		const u_char* packet;
 		int res = pcap_next_ex(pcap, &header, &packet);
@@ -92,11 +94,29 @@ int main(int argc, char** argv)
         packet += sizeof(struct _ieee80211_radiotap_header);
         memcpy(&modifiedPacket.beacon_, packet, sizeof(struct _ieee80211_beacon_frame_header));
 
-        if (pcap_sendpacket(pcap, reinterpret_cast<const u_char*>(&modifiedPacket), sizeof(modifiedPacket)) != 0) {
+        struct _ieee80211_wireless_management_header modifiedWireless;
+        modifiedWireless.timestamp = getCurrentTime();
+        modifiedWireless.beacon_interval = 0x64;
+        modifiedWireless.capabilities_information = 0x1511;
+        modifiedWireless.tag_number = 0;
+
+        size_t ssid_length = ssid_list[i].size();
+        modifiedWireless.tag_length = ssid_list[i].size();
+        modifiedWireless.ssid = (uint8_t*)malloc(ssid_length);
+        if (modifiedWireless.ssid == nullptr)
+        {
+            fprintf(stderr, "Failed to allocate memory for SSID\n");
+            break;
+        }
+        memcpy(&modifiedWireless.ssid, ssid_list[i].c_str(), ssid_length);
+        memcpy(&modifiedPacket.wireless_, &modifiedWireless, sizeof(modifiedWireless));
+
+        if (pcap_sendpacket(pcap, reinterpret_cast<const u_char*>(&modifiedPacket), sizeof(struct _ieee80211_radiotap_header) + sizeof(struct _ieee80211_beacon_frame_header) + sizeof(uint8_t) * (14 + modifiedWireless.tag_length)) != 0) {
             fprintf(stderr, "pcap_sendpacket failed - %s\n", pcap_geterr(pcap));
             break;
         }
-        printf("modified beacon packet sent\n");
+
+        i++;
     }
 
     return 0;
