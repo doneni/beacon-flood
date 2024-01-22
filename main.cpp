@@ -61,9 +61,6 @@ int main(int argc, char** argv)
         openFile.close();
     }
 
-    for(auto& entry : ssid_list) 
-        cout << entry << endl;
-
 	char errbuf[PCAP_ERRBUF_SIZE];
 	pcap_t* pcap = pcap_open_live(param.dev_, BUFSIZ, 1, 1000, errbuf);
 	if (pcap == NULL) {
@@ -71,7 +68,36 @@ int main(int argc, char** argv)
 		return -1;
     }
 
-    struct BeaconPacket packet;
+    int i = 0;
+    while(1)
+    {
+        struct pcap_pkthdr* header;
+		const u_char* packet;
+		int res = pcap_next_ex(pcap, &header, &packet);
+		if (res == 0) continue;
+		if (res == PCAP_ERROR || res == PCAP_ERROR_BREAK) {
+			printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(pcap));
+			break;
+		}  
+
+        struct _ieee80211_radiotap_header* radiotap_hdr = (struct _ieee80211_radiotap_header*)packet;
+		struct _ieee80211_beacon_frame_header* beacon_hdr = (struct _ieee80211_beacon_frame_header*)(radiotap_hdr->it_len + packet);
+		struct _ieee80211_wireless_management_header* wireless_hdr = (struct _ieee80211_wireless_management_header*)(radiotap_hdr->it_len + sizeof(_ieee80211_beacon_frame_header) + packet);
+
+		if(beacon_hdr->frame_control != 0x80)
+			continue;
+
+        struct BeaconPacket modifiedPacket;
+        memcpy(&modifiedPacket.radiotap_, packet, sizeof(struct _ieee80211_radiotap_header));
+        packet += sizeof(struct _ieee80211_radiotap_header);
+        memcpy(&modifiedPacket.beacon_, packet, sizeof(struct _ieee80211_beacon_frame_header));
+
+        if (pcap_sendpacket(pcap, reinterpret_cast<const u_char*>(&modifiedPacket), sizeof(modifiedPacket)) != 0) {
+            fprintf(stderr, "pcap_sendpacket failed - %s\n", pcap_geterr(pcap));
+            break;
+        }
+        printf("modified beacon packet sent\n");
+    }
 
     return 0;
 }

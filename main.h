@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <iostream>
+#include <cstring>
+#include <string.h>
 #include <string>
 #include <fstream>
 #include <vector>

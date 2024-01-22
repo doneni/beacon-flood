@@ -150,7 +150,7 @@ typedef struct _ieee80211_radiotap_header {
 							* it_version, it_pad,
 							* it_len, and data fields.
 							*/
-	uint32_t it_present;		/* A bitmap telling which
+	uint64_t it_present;		/* A bitmap telling which
 								* fields are present. Set bit 31
 								* (0x80000000) to extend the
 								* bitmap by another 32 bits.
@@ -161,7 +161,7 @@ typedef struct _ieee80211_radiotap_header {
 	uint8_t data_rate;
 	uint16_t channel_frequency;
 	uint16_t channel_flags;
-	uint8_t antenna_signal1;
+	uint16_t antenna_signal1;
 	uint16_t rx_flags;
 	uint8_t antenna_signal2;
 	uint8_t antenna;
