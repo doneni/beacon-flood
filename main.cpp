@@ -69,6 +69,7 @@ int main(int argc, char** argv)
     }
 
     int i = 0;
+    unordered_map<int, uint8_t[6]> macMap;
     while(1)
     {
         if(i > ssid_list.size() - 1)
@@ -93,6 +94,18 @@ int main(int argc, char** argv)
         memcpy(&modifiedPacket.radiotap_, packet, sizeof(struct _ieee80211_radiotap_header));
         packet += sizeof(struct _ieee80211_radiotap_header);
         memcpy(&modifiedPacket.beacon_, packet, sizeof(struct _ieee80211_beacon_frame_header));
+
+        if(!macMap.count(i))
+        {
+            for(int m = 0; m < 6; m++)
+                macMap[i][m] = uint8_t(rand() % 256);
+        }
+
+        for(int m = 0; m < 6; m++)
+        {
+            modifiedPacket.beacon_.transmitter_address[m] = macMap[i][m];
+            modifiedPacket.beacon_.bssid[m] = macMap[i][m];
+        }
 
         struct _ieee80211_wireless_management_header modifiedWireless;
         modifiedWireless.timestamp = getCurrentTime();

@@ -13,6 +13,8 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <unordered_map>
+#include <iterator>
 #include "radiotap.h"
 #include "beacon_frame.h"
 #include "wireless.h"
