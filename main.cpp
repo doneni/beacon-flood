@@ -122,7 +122,10 @@ int main(int argc, char** argv)
             break;
         }
         memcpy(&modifiedWireless.ssid, ssid_list[i].c_str(), ssid_length);
-        memcpy(&modifiedPacket.wireless_, &modifiedWireless, sizeof(modifiedWireless));
+        memcpy(&modifiedPacket.wireless_, &modifiedWireless, sizeof(uint8_t) * ((14 + modifiedWireless.tag_length)));
+
+        printf("%s\n", &modifiedWireless.ssid);
+        printf("%s\n", &modifiedPacket.wireless_.ssid);
 
         if (pcap_sendpacket(pcap, reinterpret_cast<const u_char*>(&modifiedPacket), sizeof(struct _ieee80211_radiotap_header) + sizeof(struct _ieee80211_beacon_frame_header) + sizeof(uint8_t) * (14 + modifiedWireless.tag_length)) != 0) {
             fprintf(stderr, "pcap_sendpacket failed - %s\n", pcap_geterr(pcap));
