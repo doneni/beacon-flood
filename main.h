@@ -15,6 +15,8 @@
 #include <vector>
 #include <unordered_map>
 #include <iterator>
+#include <locale>
+#include <codecvt>
 #include "radiotap.h"
 #include "beacon_frame.h"
 #include "wireless.h"
